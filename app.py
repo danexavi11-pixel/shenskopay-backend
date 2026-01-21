@@ -1,29 +1,52 @@
 from flask import Flask, request, jsonify
-from detector import detect_number
+import os
+import re
 
 app = Flask(__name__)
+
+def detect_number(value: str):
+    value = value.strip()
+
+    if re.fullmatch(r"(0|255)[67]\d{8}", value):
+        return {"provider": "Vodacom", "name": "James Mwita"}
+
+    if re.fullmatch(r"\d{10,15}", value):
+        return {"provider": "Government", "name": "TRA Payment"}
+
+    if re.fullmatch(r"\d{5,7}", value):
+        return {"provider": "Merchant", "name": "ABC Store"}
+
+    if re.fullmatch(r"\d{8,16}", value):
+        return {"provider": "Bank", "name": "CRDB Account"}
+
+    return None
+
 
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
         "brand": "ShenskoPay",
-        "message": "Enter a number to pay",
-        "step": "INPUT_NUMBER"
+        "step": "ENTER_NUMBER"
     })
 
-@app.route("/detect", methods=["POST"])
-def detect():
-    data = request.get_json(force=True)
+
+@app.route("/confirm", methods=["POST"])
+def confirm():
+    data = request.get_json()
     number = data.get("number", "")
 
     result = detect_number(number)
 
+    if not result:
+        return jsonify({"error": "Invalid number"}), 400
+
     return jsonify({
-        "input": number,
-        "name": result["name"] if result else "Unknown",
-        "provider": result["provider"] if result else "Unknown",
-        "next_step": "CONFIRM_AND_PAY" if result else "RETRY"
+        "name": result["name"],
+        "provider": result["provider"],
+        "next": "ENTER_AMOUNT"
     })
 
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
