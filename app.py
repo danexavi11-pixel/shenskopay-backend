@@ -1,51 +1,102 @@
 from flask import Flask, request, render_template_string
-from detector import detect_number
-from pesapal import create_payment
+import re
 
 app = Flask(__name__)
 
 FEE_PERCENTAGE = 0.01  # 1% fee per transaction
 
-# Home page template
+def detect_number(value: str):
+    value = value.strip()
+    # TZ mobile numbers
+    if re.fullmatch(r"(0|255)[67]\d{8}", value):
+        return {"provider": "Vodacom/Tigo/Airtel/Halotel/Mantel/TTCL", "name": "James Mwita"}
+    # Control numbers (gov / bills)
+    if re.fullmatch(r"\d{10,15}", value):
+        return {"provider": "Government", "name": "TRA Payment"}
+    # Merchant / Lipa Namba
+    if re.fullmatch(r"\d{5,7}", value):
+        return {"provider": "Merchant", "name": "ABC Store"}
+    # Bank account
+    if re.fullmatch(r"\d{8,16}", value):
+        return {"provider": "Bank", "name": "CRDB Account"}
+    return None
+
 home_template = """
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>ShenskoPay</title>
 <style>
-body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f2f5; }
-.card { background:white; padding:30px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:300px; text-align:center; }
-input, button { width:100%; padding:10px; margin:10px 0; border-radius:5px; border:1px solid #ccc; }
-button { background:#4CAF50; color:white; border:none; cursor:pointer; }
-button:hover { background:#45a049; }
+body {
+    margin: 0; 
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f6d365, #fda085);
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh;
+}
+.card {
+    background: white;
+    padding: 40px 50px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+h2 { margin-bottom: 30px; color: #ff6f61; }
+input[type=text], input[type=number] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 8px 0 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+}
+button {
+    background-color: #ff6f61;
+    color: white;
+    padding: 14px 0;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 18px;
+}
+button:hover { background-color: #ff3b2e; }
 </style>
 </head>
 <body>
 <div class="card">
 <h2>ShenskoPay</h2>
 <form action="{{ url_for('confirm') }}" method="post">
-    <label>Enter number:</label><br>
-    <input type="text" name="number" required><br>
-    <label>Enter amount (Tsh):</label><br>
-    <input type="number" name="amount" required><br>
-    <button type="submit">Continue</button>
+<label>Enter number:</label>
+<input type="text" name="number" required>
+<label>Enter amount (Tsh):</label>
+<input type="number" name="amount" required>
+<button type="submit">Continue</button>
 </form>
 </div>
 </body>
 </html>
 """
 
-# Confirm page template
 confirm_template = """
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>ShenskoPay - Confirm</title>
 <style>
-body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f2f5; }
-.card { background:white; padding:30px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:350px; text-align:center; }
-button { background:#4CAF50; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer; }
-button:hover { background:#45a049; }
+body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(135deg, #f6d365, #fda085); display: flex; justify-content: center; align-items: center; height: 100vh; }
+.card { background: white; padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+h2 { margin-bottom: 20px; color: #ff6f61; }
+p { font-size: 18px; margin: 10px 0; }
+button { background-color: #ff6f61; color: white; padding: 14px 0; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 18px; margin-top: 20px; }
+button:hover { background-color: #ff3b2e; }
 </style>
 </head>
 <body>
@@ -58,25 +109,27 @@ button:hover { background:#45a049; }
 <p>Transaction fee: Tsh {{ fee }}</p>
 <p>Total to send: Tsh {{ total }}</p>
 <form action="{{ url_for('complete') }}" method="post">
-    <input type="hidden" name="number" value="{{ number }}">
-    <input type="hidden" name="amount" value="{{ amount }}">
-    <input type="hidden" name="fee" value="{{ fee }}">
-    <button type="submit">Confirm Payment</button>
+<input type="hidden" name="number" value="{{ number }}">
+<input type="hidden" name="amount" value="{{ amount }}">
+<input type="hidden" name="fee" value="{{ fee }}">
+<button type="submit">Confirm Payment</button>
 </form>
 </div>
 </body>
 </html>
 """
 
-# Success page template
 success_template = """
 <!doctype html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <title>ShenskoPay - Success</title>
 <style>
-body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; background:#f0f2f5; }
-.card { background:white; padding:30px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:350px; text-align:center; }
+body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(135deg, #f6d365, #fda085); display: flex; justify-content: center; align-items: center; height: 100vh; }
+.card { background: white; padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+h2 { margin-bottom: 20px; color: #28a745; }
+p { font-size: 18px; margin: 10px 0; }
 </style>
 </head>
 <body>
@@ -86,11 +139,6 @@ body { font-family: Arial, sans-serif; display:flex; justify-content:center; ali
 <p>Amount Sent: Tsh {{ amount }}</p>
 <p>Transaction Fee Collected: Tsh {{ fee }}</p>
 <p>Total Deducted: Tsh {{ total }}</p>
-{% if payment.url %}
-<p><a href="{{ payment.url }}" target="_blank">Click here to pay via Pesapal</a></p>
-{% elif payment.error %}
-<p>Error: {{ payment.error }}</p>
-{% endif %}
 </div>
 </body>
 </html>
@@ -104,18 +152,11 @@ def home():
 def confirm():
     number = request.form.get("number")
     amount = float(request.form.get("amount"))
-    
     detected = detect_number(number)
-    if detected is None:
-        name = "Unknown"
-        provider = "Unknown"
-    else:
-        name = detected["name"]
-        provider = detected["provider"]
-    
+    name = detected["name"] if detected else "Unknown"
+    provider = detected["provider"] if detected else "Unknown"
     fee = round(amount * FEE_PERCENTAGE, 2)
     total = amount + fee
-
     return render_template_string(confirm_template,
                                   number=number,
                                   name=name,
@@ -130,21 +171,12 @@ def complete():
     amount = float(request.form.get("amount"))
     fee = float(request.form.get("fee"))
     total = amount + fee
-
-    # Create real Pesapal payment
-    payment_response = create_payment(
-        amount=total,
-        description=f"ShenskoPay payment to {number}",
-        reference=f"SPAY-{number}",
-        phone=number
-    )
-
+    # Real payment gateway integration comes later
     return render_template_string(success_template,
                                   number=number,
                                   amount=amount,
                                   fee=fee,
-                                  total=total,
-                                  payment=payment_response)
+                                  total=total)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
