@@ -4,10 +4,24 @@ app = Flask(__name__)
 
 HTML_PAGE = """
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShenskoPay</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background: #0f172a;
@@ -15,27 +29,41 @@ HTML_PAGE = """
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
         }
+
         .box {
             background: #020617;
             padding: 20px;
-            border-radius: 10px;
-            width: 300px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 360px;
+            text-align: center;
         }
+
         input, button {
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
         }
+
+        input {
+            outline: none;
+        }
+
         button {
             background: #22c55e;
-            border: none;
+            color: black;
+            font-weight: bold;
             cursor: pointer;
         }
+
         #result {
             margin-top: 15px;
             font-size: 14px;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -54,12 +82,15 @@ function send() {
     fetch("/detect", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({phone})
+        body: JSON.stringify({ phone })
     })
     .then(res => res.json())
     .then(data => {
         document.getElementById("result").innerText =
             JSON.stringify(data, null, 2);
+    })
+    .catch(() => {
+        document.getElementById("result").innerText = "Error connecting to server";
     });
 }
 </script>
@@ -80,9 +111,9 @@ def detect():
         return jsonify({"error": "Phone number required"}), 400
 
     return jsonify({
+        "brand": "ShenskoPay",
         "phone": phone,
-        "network": "DETECTED",
-        "next_step": "PAYMENT"
+        "status": "READY_FOR_PAYMENT"
     })
 
 if __name__ == "__main__":
