@@ -1,120 +1,106 @@
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, render_template_string
+import re
 
 app = Flask(__name__)
 
-HTML_PAGE = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ShenskoPay</title>
+FEE_PERCENTAGE = 0.01  # 1% per transaction
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .box {
-            background: #020617;
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 360px;
-            text-align: center;
-        }
-
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 12px;
-            font-size: 16px;
-            border-radius: 6px;
-            border: none;
-        }
-
-        input {
-            outline: none;
-        }
-
-        button {
-            background: #22c55e;
-            color: black;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #result {
-            margin-top: 15px;
-            font-size: 14px;
-            word-wrap: break-word;
-        }
-    </style>
-</head>
-<body>
-    <div class="box">
-        <h2>ShenskoPay</h2>
-        <input id="phone" placeholder="Enter phone number" />
-        <button onclick="send()">Continue</button>
-        <div id="result"></div>
-    </div>
-
-<script>
-function send() {
-    const phone = document.getElementById("phone").value;
-
-    fetch("/detect", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ phone })
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("result").innerText =
-            JSON.stringify(data, null, 2);
-    })
-    .catch(() => {
-        document.getElementById("result").innerText = "Error connecting to server";
-    });
-}
-</script>
-</body>
-</html>
+# Templates
+home_template = """
+<!doctype html>
+<title>ShenskoPay</title>
+<h2 style="font-family:sans-serif;">ShenskoPay</h2>
+<form action="/confirm" method="post">
+    <label>Enter number:</label><br>
+    <input type="text" name="number" required><br><br>
+    <label>Enter amount (Tsh):</label><br>
+    <input type="number" name="amount" required><br><br>
+    <button type="submit">Continue</button>
+</form>
 """
 
-@app.route("/")
+confirm_template = """
+<!doctype html>
+<title>ShenskoPay - Confirm</title>
+<h2 style="font-family:sans-serif;">ShenskoPay</h2>
+<p>Number detected: {{ number }}</p>
+<p>Name: {{ name }}</p>
+<p>Provider: {{ provider }}</p>
+<p>Amount: Tsh {{ amount }}</p>
+<p>Transaction fee: Tsh {{ fee }}</p>
+<p>Total to send: Tsh {{ total }}</p>
+<form action="/complete" method="post">
+    <input type="hidden" name="number" value="{{ number }}">
+    <input type="hidden" name="amount" value="{{ amount }}">
+    <input type="hidden" name="fee" value="{{ fee }}">
+    <button type="submit">Confirm Payment</button>
+</form>
+"""
+
+success_template = """
+<!doctype html>
+<title>ShenskoPay - Success</title>
+<h2 style="font-family:sans-serif;">Payment Successful ✅</h2>
+<p>Number: {{ number }}</p>
+<p>Amount Sent: Tsh {{ amount }}</p>
+<p>Transaction Fee Collected: Tsh {{ fee }}</p>
+<p>Total Deducted: Tsh {{ total }}</p>
+"""
+
+# Number detector
+def detect_number(value: str):
+    value = value.strip()
+    # TZ mobile numbers
+    if re.fullmatch(r"(0|255)[67]\d{8}", value):
+        return {"provider": "Vodacom/Tigo/Airtel/Halotel/Mantel/TTCL", "name": "James Mwita"}
+    # Government / Control numbers
+    if re.fullmatch(r"\d{10,15}", value):
+        return {"provider": "Government", "name": "TRA Payment"}
+    # Merchant / Lipa Namba
+    if re.fullmatch(r"\d{5,7}", value):
+        return {"provider": "Merchant", "name": "ABC Store"}
+    # Bank account
+    if re.fullmatch(r"\d{8,16}", value):
+        return {"provider": "Bank", "name": "CRDB Account"}
+    return None
+
+@app.route("/", methods=["GET"])
 def home():
-    return render_template_string(HTML_PAGE)
+    return render_template_string(home_template)
 
-@app.route("/detect", methods=["POST"])
-def detect():
-    data = request.get_json()
-    phone = data.get("phone") if data else None
+@app.route("/confirm", methods=["POST"])
+def confirm():
+    number = request.form.get("number")
+    amount = float(request.form.get("amount"))
+    detected = detect_number(number)
+    if detected:
+        name = detected["name"]
+        provider = detected["provider"]
+    else:
+        name = "Unknown"
+        provider = "Unknown"
+    fee = round(amount * FEE_PERCENTAGE, 2)
+    total = amount + fee
+    return render_template_string(confirm_template,
+                                  number=number,
+                                  name=name,
+                                  provider=provider,
+                                  amount=amount,
+                                  fee=fee,
+                                  total=total)
 
-    if not phone:
-        return jsonify({"error": "Phone number required"}), 400
-
-    return jsonify({
-        "brand": "ShenskoPay",
-        "phone": phone,
-        "status": "READY_FOR_PAYMENT"
-    })
+@app.route("/complete", methods=["POST"])
+def complete():
+    number = request.form.get("number")
+    amount = float(request.form.get("amount"))
+    fee = float(request.form.get("fee"))
+    total = amount + fee
+    # Future: integrate real payment gateway here
+    return render_template_string(success_template,
+                                  number=number,
+                                  amount=amount,
+                                  fee=fee,
+                                  total=total)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
