@@ -15,7 +15,7 @@ BASE_HTML = """
 <style>
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: system-ui, sans-serif;
     background: #f2f4f8;
 }
 .container {
@@ -25,7 +25,7 @@ body {
     justify-content: center;
 }
 .card {
-    background: #ffffff;
+    background: white;
     width: 100%;
     max-width: 420px;
     padding: 24px;
@@ -34,38 +34,25 @@ body {
 }
 h1 {
     text-align: center;
-    margin-bottom: 20px;
 }
-label {
-    font-weight: 500;
-}
-input {
+input, button {
     width: 100%;
     padding: 14px;
-    margin-top: 6px;
-    margin-bottom: 16px;
     font-size: 16px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
+    margin-top: 10px;
 }
 button {
-    width: 100%;
-    padding: 14px;
     background: #0066ff;
     color: white;
-    font-size: 16px;
     border: none;
     border-radius: 10px;
-}
-p {
-    font-size: 15px;
 }
 </style>
 </head>
 <body>
 <div class="container">
 <div class="card">
-{{ content }}
+{{ content | safe }}
 </div>
 </div>
 </body>
@@ -75,25 +62,20 @@ p {
 HOME = """
 <h1>ShenskoPay</h1>
 <form method="post" action="/confirm">
-<label>Enter number</label>
-<input name="number" required>
-
-<label>Amount (Tsh)</label>
-<input name="amount" type="number" required>
-
+<input name="number" placeholder="Enter number" required>
+<input name="amount" type="number" placeholder="Amount (Tsh)" required>
 <button type="submit">Continue</button>
 </form>
 """
 
 CONFIRM = """
 <h1>Confirm Payment</h1>
-<p><strong>Number:</strong> {{ number }}</p>
-<p><strong>Name:</strong> {{ name }}</p>
-<p><strong>Provider:</strong> {{ provider }}</p>
-<p><strong>Amount:</strong> Tsh {{ amount }}</p>
-<p><strong>Fee:</strong> Tsh {{ fee }}</p>
-<p><strong>Total:</strong> Tsh {{ total }}</p>
-
+<p><b>Number:</b> {{ number }}</p>
+<p><b>Name:</b> {{ name }}</p>
+<p><b>Provider:</b> {{ provider }}</p>
+<p><b>Amount:</b> Tsh {{ amount }}</p>
+<p><b>Fee:</b> Tsh {{ fee }}</p>
+<p><b>Total:</b> Tsh {{ total }}</p>
 <form method="post" action="/complete">
 <input type="hidden" name="number" value="{{ number }}">
 <input type="hidden" name="amount" value="{{ amount }}">
@@ -105,12 +87,10 @@ CONFIRM = """
 SUCCESS = """
 <h1>Payment Successful ✅</h1>
 <p>Number: {{ number }}</p>
-<p>Amount: Tsh {{ amount }}</p>
-<p>Fee: Tsh {{ fee }}</p>
 <p>Total Deducted: Tsh {{ total }}</p>
 """
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
     return render_template_string(BASE_HTML, content=HOME)
 
@@ -118,11 +98,7 @@ def home():
 def confirm():
     number = request.form["number"]
     amount = float(request.form["amount"])
-
     detected = detect_number(number) or {}
-    name = detected.get("name", "Unknown")
-    provider = detected.get("provider", "Unknown")
-
     fee = round(amount * FEE_PERCENTAGE, 2)
     total = amount + fee
 
@@ -131,8 +107,8 @@ def confirm():
         content=render_template_string(
             CONFIRM,
             number=number,
-            name=name,
-            provider=provider,
+            name=detected.get("name", "Unknown"),
+            provider=detected.get("provider", "Unknown"),
             amount=amount,
             fee=fee,
             total=total
@@ -141,20 +117,12 @@ def confirm():
 
 @app.route("/complete", methods=["POST"])
 def complete():
-    number = request.form["number"]
     amount = float(request.form["amount"])
     fee = float(request.form["fee"])
     total = amount + fee
-
     return render_template_string(
         BASE_HTML,
-        content=render_template_string(
-            SUCCESS,
-            number=number,
-            amount=amount,
-            fee=fee,
-            total=total
-        )
+        content=render_template_string(SUCCESS, number=request.form["number"], total=total)
     )
 
 if __name__ == "__main__":
