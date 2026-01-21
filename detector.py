@@ -3,17 +3,25 @@ import re
 def detect_number(value: str):
     value = value.strip()
 
-    # TZ mobile numbers (examples)
-    if re.fullmatch(r"(0|255)[67]\d{8}", value):
+    # Vodacom TZ
+    if re.fullmatch(r"(0|255)7[0-9]{8}", value):
         return {"provider": "Vodacom", "name": "James Mwita"}
-    if re.fullmatch(r"(0|255)68\d{8}", value):
-        return {"provider": "Airtel", "name": "Airtel User"}
-    if re.fullmatch(r"(0|255)65\d{8}", value):
-        return {"provider": "Tigo", "name": "Tigo User"}
-    if re.fullmatch(r"(0|255)62\d{8}", value):
-        return {"provider": "TTCL", "name": "TTCL User"}
-    if re.fullmatch(r"(0|255)66\d{8}", value):
-        return {"provider": "Halotel", "name": "Halotel User"}
+
+    # Tigo TZ
+    if re.fullmatch(r"(0|255)6[0-9]{8}", value):
+        return {"provider": "Tigo", "name": "Asha Juma"}
+
+    # Airtel TZ
+    if re.fullmatch(r"(0|255)7[89][0-9]{7}", value):
+        return {"provider": "Airtel", "name": "John Peter"}
+
+    # Halotel TZ
+    if re.fullmatch(r"(0|255)5[0-9]{8}", value):
+        return {"provider": "Halotel", "name": "Fatma Ali"}
+
+    # TTCL TZ
+    if re.fullmatch(r"(0|255)2[0-9]{8}", value):
+        return {"provider": "TTCL", "name": "Daniel Kim"}
 
     # Control numbers (gov / bills)
     if re.fullmatch(r"\d{10,15}", value):
