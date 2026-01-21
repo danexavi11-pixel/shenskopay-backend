@@ -1,31 +1,31 @@
 from flask import Flask, request, jsonify
-from detector import detect_number
-import os
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
     return jsonify({
-        "brand": "ShenskoPay",
+        "service": "ShenskoPay Backend",
+        "status": "LIVE",
         "step": "ENTER_NUMBER"
     })
 
-@app.route("/confirm", methods=["POST"])
-def confirm():
-    data = request.get_json(force=True)
-    number = data.get("number", "")
+@app.route("/detect", methods=["POST"])
+def detect():
+    data = request.get_json()
 
-    result = detect_number(number)
-    if not result:
-        return jsonify({"error": "Invalid number"}), 400
+    phone = data.get("phone") if data else None
+
+    if not phone:
+        return jsonify({
+            "error": "Phone number required"
+        }), 400
 
     return jsonify({
-        "name": result["name"],
-        "provider": result["provider"],
-        "step": "ENTER_AMOUNT"
+        "phone": phone,
+        "network": "DETECTED",
+        "next_step": "PAYMENT"
     })
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
