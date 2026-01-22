@@ -10,147 +10,125 @@ def detect_number(value: str):
         return {"provider": "Mobile Money", "name": "Recipient Verified"}
     return None
 
-BASE_STYLE = """
+STYLE = """
 <style>
 * { box-sizing: border-box; }
 
-body {
+html, body {
     margin: 0;
-    min-height: 100vh;
+    height: 100%;
     font-family: 'Segoe UI', Roboto, sans-serif;
-    background: #0e1a24;
-    position: relative;
-    overflow-x: hidden;
-    padding: 20px;
+    font-size: 18px;
+}
+
+/* BACKGROUND */
+body {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #0e1a24;
 }
 
-/* WATERMARK BACKGROUND */
-body::before {
-    content: "SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 200%;
-    height: 200%;
-    font-size: 42px;
-    font-weight: 900;
-    letter-spacing: 6px;
-    color: rgba(255, 255, 255, 0.04);
-    transform: rotate(-20deg);
-    white-space: nowrap;
-    z-index: 0;
-}
-
-/* MAIN CARD */
+/* CARD */
 .card {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 760px;
-    background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.96),
-        rgba(245,245,245,0.93)
-    );
-    border-radius: 22px;
-    padding: 38px;
-    box-shadow: 0 35px 70px rgba(0,0,0,0.55);
+    width: 94%;
+    max-width: 900px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.55);
 }
 
 /* BRAND */
 .brand {
     text-align: center;
-    font-size: 36px;
+    font-size: 40px;
     font-weight: 900;
     color: #ff6f00;
-    letter-spacing: 1px;
+    margin-bottom: 8px;
 }
 
 .tagline {
     text-align: center;
-    font-size: 15px;
+    font-size: 18px;
     color: #555;
-    margin-bottom: 34px;
+    margin-bottom: 40px;
 }
 
 /* FORM */
 label {
-    font-size: 15px;
     font-weight: 700;
+    font-size: 18px;
     color: #222;
+    display: block;
+    margin-bottom: 8px;
 }
 
 input {
     width: 100%;
-    padding: 17px;
-    margin-top: 8px;
-    margin-bottom: 24px;
-    border-radius: 14px;
-    border: 1px solid #ccc;
-    font-size: 17px;
+    padding: 20px;
+    margin-bottom: 28px;
+    border-radius: 16px;
+    border: 1.5px solid #ccc;
+    font-size: 20px;
 }
 
+input:focus {
+    outline: none;
+    border-color: #ff6f00;
+}
+
+/* BUTTON */
 button {
     width: 100%;
-    padding: 18px;
+    padding: 20px;
+    border-radius: 18px;
     border: none;
-    border-radius: 16px;
     background: linear-gradient(135deg, #ff6f00, #ffb300);
     color: #fff;
-    font-size: 19px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 900;
     cursor: pointer;
 }
 
-button:hover {
-    opacity: 0.95;
-}
+button:hover { opacity: 0.96; }
 
 /* INFO */
 .info {
-    font-size: 17px;
-    margin: 10px 0;
-    color: #333;
+    font-size: 20px;
+    margin: 14px 0;
 }
 
 .total {
-    margin-top: 14px;
-    font-size: 21px;
+    margin-top: 18px;
+    font-size: 26px;
     font-weight: 900;
 }
 
 /* SUCCESS */
 .success {
     text-align: center;
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 900;
     color: #2e7d32;
-    margin-bottom: 18px;
 }
 
 /* MOBILE */
 @media (max-width: 600px) {
     .card {
-        padding: 26px;
-        max-width: 100%;
+        padding: 32px;
     }
     .brand {
-        font-size: 28px;
+        font-size: 32px;
     }
 }
 </style>
 """
 
-HOME_HTML = """
+HOME = """
 <!doctype html>
 <html>
-<head>
-<title>ShenskoPay</title>
-""" + BASE_STYLE + """
-</head>
+<head><title>ShenskoPay</title>""" + STYLE + """</head>
 <body>
 <div class="card">
     <div class="brand">ShenskoPay</div>
@@ -161,7 +139,7 @@ HOME_HTML = """
         <input name="number" placeholder="07XXXXXXXX" required>
 
         <label>Amount (TZS)</label>
-        <input type="number" name="amount" placeholder="e.g. 5000" required>
+        <input type="number" name="amount" placeholder="Enter amount" required>
 
         <button type="submit">Continue</button>
     </form>
@@ -170,13 +148,10 @@ HOME_HTML = """
 </html>
 """
 
-CONFIRM_HTML = """
+CONFIRM = """
 <!doctype html>
 <html>
-<head>
-<title>Confirm Payment</title>
-""" + BASE_STYLE + """
-</head>
+<head><title>Confirm</title>""" + STYLE + """</head>
 <body>
 <div class="card">
     <div class="brand">Confirm Payment</div>
@@ -198,13 +173,10 @@ CONFIRM_HTML = """
 </html>
 """
 
-SUCCESS_HTML = """
+SUCCESS = """
 <!doctype html>
 <html>
-<head>
-<title>Success</title>
-""" + BASE_STYLE + """
-</head>
+<head><title>Success</title>""" + STYLE + """</head>
 <body>
 <div class="card">
     <div class="success">Payment Successful</div>
@@ -219,20 +191,19 @@ SUCCESS_HTML = """
 
 @app.route("/")
 def home():
-    return render_template_string(HOME_HTML)
+    return render_template_string(HOME)
 
 @app.route("/confirm", methods=["POST"])
 def confirm():
     number = request.form["number"]
     amount = float(request.form["amount"])
     detected = detect_number(number)
-    name = detected["name"] if detected else "Unknown"
     fee = round(amount * FEE_PERCENTAGE, 2)
     total = amount + fee
     return render_template_string(
-        CONFIRM_HTML,
+        CONFIRM,
         number=number,
-        name=name,
+        name=detected["name"] if detected else "Unknown",
         amount=amount,
         fee=fee,
         total=total
@@ -243,13 +214,12 @@ def complete():
     number = request.form["number"]
     amount = float(request.form["amount"])
     fee = float(request.form["fee"])
-    total = amount + fee
     return render_template_string(
-        SUCCESS_HTML,
+        SUCCESS,
         number=number,
         amount=amount,
         fee=fee,
-        total=total
+        total=amount + fee
     )
 
 if __name__ == "__main__":
