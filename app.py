@@ -19,6 +19,7 @@ html, body {
     height: 100%;
     font-family: 'Segoe UI', Roboto, sans-serif;
     font-size: 18px;
+    overflow-x: hidden;
 }
 
 /* BACKGROUND */
@@ -26,8 +27,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #0e1a24, #102f4c);
+    background: linear-gradient(-45deg, #0e1a24, #102f4c, #1a3a60, #0e1a24);
+    background-size: 400% 400%;
+    animation: gradientMove 15s ease infinite;
     position: relative;
+}
+
+/* GRADIENT ANIMATION */
+@keyframes gradientMove {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
 }
 
 /* WATERMARK TEXT */
@@ -52,20 +62,27 @@ body::before {
     box-shadow: 0 30px 70px rgba(0,0,0,0.55);
     position: relative;
     z-index: 1;
+    animation: fadeIn 1s ease forwards;
+    opacity: 0;
 }
 
-/* BRAND */
+/* FADE-IN */
+@keyframes fadeIn {
+    to { opacity: 1; }
+}
+
+/* BRAND LOGO */
 .brand {
     text-align: center;
-    font-size: 40px;
+    font-size: 48px;
     font-weight: 900;
     color: #ff6f00;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .tagline {
     text-align: center;
-    font-size: 18px;
+    font-size: 20px;
     color: #555;
     margin-bottom: 40px;
 }
@@ -104,9 +121,13 @@ button {
     font-size: 22px;
     font-weight: 900;
     cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-button:hover { opacity: 0.96; }
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
 
 /* INFO */
 .info {
@@ -134,7 +155,7 @@ button:hover { opacity: 0.96; }
         padding: 32px;
     }
     .brand {
-        font-size: 32px;
+        font-size: 36px;
     }
     body::before { font-size: 60px; top: 25%; left: 0; }
 }
@@ -147,7 +168,7 @@ HOME = """
 <head><title>ShenskoPay</title>""" + STYLE + """</head>
 <body>
 <div class="card">
-    <div class="brand">ShenskoPay</div>
+    <div class="brand">💰 ShenskoPay</div>
     <div class="tagline">Fast • Secure • Trusted Payments</div>
 
     <form action="/confirm" method="post">
@@ -195,7 +216,7 @@ SUCCESS = """
 <head><title>Success</title>""" + STYLE + """</head>
 <body>
 <div class="card">
-    <div class="success">Payment Successful</div>
+    <div class="success">✅ Payment Successful</div>
     <div class="info">To: {{ number }}</div>
     <div class="info">Amount: Tsh {{ amount }}</div>
     <div class="info">Fee: Tsh {{ fee }}</div>
