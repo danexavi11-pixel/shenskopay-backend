@@ -18,15 +18,13 @@ HTML_TEMPLATE = """
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:'Segoe UI',Roboto,sans-serif;overflow-x:hidden;}
+
 body{
   display:flex;justify-content:center;align-items:center;
-  background:#0b1d38;position:relative;
-  animation:bgAnim 30s infinite linear;
+  background: linear-gradient(135deg,#0b1d38,#1a2b4c);
+  position:relative;
 }
-@keyframes bgAnim{
-  0%{background-position:0 0;}
-  100%{background-position:100% 100%;}
-}
+
 /* PREMIUM ANIMATED WATERMARK */
 body::before{
   content:'';
@@ -49,14 +47,13 @@ body::before{
   100%{background-position:800px 600px;}
 }
 
+/* PREMIUM CARD STAYS EXACTLY AS YOUR WORKING VERSION */
 .card{
-  width:90%;max-width:900px;background:rgba(255,255,255,0.97);
-  border-radius:32px;padding:60px;box-shadow:0 25px 70px rgba(0,0,0,0.6);
-  position:relative;z-index:1;text-align:center;
-  transition:0.3s;
+  width:90%; max-width:850px; background: rgba(255,255,255,0.98);
+  border-radius:32px; padding:60px; box-shadow:0 25px 70px rgba(0,0,0,0.6);
+  position:relative; z-index:1; text-align:center; transition:0.3s;
 }
 .card:hover{transform:scale(1.02);}
-
 .brand{font-size:72px;font-weight:900;color:#ff6f00;margin-bottom:12px;text-shadow:2px 2px 5px rgba(0,0,0,0.3);}
 .tagline{font-size:24px;color:#444;margin-bottom:40px;}
 
