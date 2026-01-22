@@ -3,180 +3,211 @@ import re
 
 app = Flask(__name__)
 
-FEE_PERCENTAGE = 0.01  # 1% fee per transaction
+FEE_PERCENTAGE = 0.01  # 1%
 
 def detect_number(value: str):
     value = value.strip()
-    # TZ mobile numbers
     if re.fullmatch(r"(0|255)[67]\d{8}", value):
-        return {"provider": "Vodacom/Tigo/Airtel/Halotel/Mantel/TTCL", "name": "James Mwita"}
-    # Control numbers (gov / bills)
-    if re.fullmatch(r"\d{10,15}", value):
-        return {"provider": "Government", "name": "TRA Payment"}
-    # Merchant / Lipa Namba
-    if re.fullmatch(r"\d{5,7}", value):
-        return {"provider": "Merchant", "name": "ABC Store"}
-    # Bank account
-    if re.fullmatch(r"\d{8,16}", value):
-        return {"provider": "Bank", "name": "CRDB Account"}
+        return {"provider": "Mobile Money", "name": "Recipient Name"}
     return None
 
-home_template = """
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>ShenskoPay</title>
+BASE_STYLE = """
 <style>
+* { box-sizing: border-box; }
+
 body {
-    margin: 0; 
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #f6d365, #fda085);
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    height: 100vh;
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background:
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+        url('https://images.unsplash.com/photo-1605902711622-cfb43c4437d1');
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
+
 .card {
-    background: white;
-    padding: 40px 50px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     width: 100%;
-    max-width: 400px;
-    text-align: center;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.35);
 }
-h2 { margin-bottom: 30px; color: #ff6f61; }
-input[type=text], input[type=number] {
+
+.brand {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 800;
+    color: #ff6f00;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+label {
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+}
+
+input {
     width: 100%;
-    padding: 12px 15px;
-    margin: 8px 0 20px 0;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    box-sizing: border-box;
+    padding: 14px;
+    margin-top: 6px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
     font-size: 16px;
 }
+
 button {
-    background-color: #ff6f61;
-    color: white;
-    padding: 14px 0;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
     width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #ff6f00, #ff9800);
+    border: none;
+    border-radius: 14px;
+    color: white;
     font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
 }
-button:hover { background-color: #ff3b2e; }
+
+button:hover {
+    opacity: 0.9;
+}
+
+.info {
+    font-size: 15px;
+    margin: 10px 0;
+    color: #333;
+}
+
+.total {
+    font-weight: 800;
+    font-size: 18px;
+    margin-top: 12px;
+}
+
+.success {
+    color: #2e7d32;
+    font-weight: 800;
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+@media (max-width: 360px) {
+    .card { padding: 22px; }
+    .brand { font-size: 24px; }
+}
 </style>
-</head>
-<body>
-<div class="card">
-<h2>ShenskoPay</h2>
-<form action="{{ url_for('confirm') }}" method="post">
-<label>Enter number:</label>
-<input type="text" name="number" required>
-<label>Enter amount (Tsh):</label>
-<input type="number" name="amount" required>
-<button type="submit">Continue</button>
-</form>
-</div>
-</body>
-</html>
 """
 
-confirm_template = """
+HOME_HTML = """
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ShenskoPay - Confirm</title>
-<style>
-body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(135deg, #f6d365, #fda085); display: flex; justify-content: center; align-items: center; height: 100vh; }
-.card { background: white; padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-h2 { margin-bottom: 20px; color: #ff6f61; }
-p { font-size: 18px; margin: 10px 0; }
-button { background-color: #ff6f61; color: white; padding: 14px 0; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 18px; margin-top: 20px; }
-button:hover { background-color: #ff3b2e; }
-</style>
+<title>ShenskoPay</title>
+""" + BASE_STYLE + """
 </head>
 <body>
 <div class="card">
-<h2>Confirm Payment</h2>
-<p>Number detected: {{ number }}</p>
-<p>Name: {{ name }}</p>
-<p>Provider: {{ provider }}</p>
-<p>Amount: Tsh {{ amount }}</p>
-<p>Transaction fee: Tsh {{ fee }}</p>
-<p>Total to send: Tsh {{ total }}</p>
-<form action="{{ url_for('complete') }}" method="post">
-<input type="hidden" name="number" value="{{ number }}">
-<input type="hidden" name="amount" value="{{ amount }}">
-<input type="hidden" name="fee" value="{{ fee }}">
-<button type="submit">Confirm Payment</button>
-</form>
+    <div class="brand">ShenskoPay</div>
+    <div class="subtitle">Fast • Secure • Simple Payments</div>
+
+    <form action="/confirm" method="post">
+        <label>Recipient Number</label>
+        <input name="number" placeholder="07XXXXXXXX" required>
+
+        <label>Amount (TZS)</label>
+        <input type="number" name="amount" placeholder="e.g. 2000" required>
+
+        <button type="submit">Continue</button>
+    </form>
 </div>
 </body>
 </html>
 """
 
-success_template = """
+CONFIRM_HTML = """
 <!doctype html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>ShenskoPay - Success</title>
-<style>
-body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(135deg, #f6d365, #fda085); display: flex; justify-content: center; align-items: center; height: 100vh; }
-.card { background: white; padding: 40px 50px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
-h2 { margin-bottom: 20px; color: #28a745; }
-p { font-size: 18px; margin: 10px 0; }
-</style>
+<title>Confirm Payment</title>
+""" + BASE_STYLE + """
 </head>
 <body>
 <div class="card">
-<h2>Payment Successful ✅</h2>
-<p>Number: {{ number }}</p>
-<p>Amount Sent: Tsh {{ amount }}</p>
-<p>Transaction Fee Collected: Tsh {{ fee }}</p>
-<p>Total Deducted: Tsh {{ total }}</p>
+    <div class="brand">Confirm Payment</div>
+
+    <div class="info">To: <b>{{ name }}</b></div>
+    <div class="info">Number: {{ number }}</div>
+    <div class="info">Amount: Tsh {{ amount }}</div>
+    <div class="info">Fee: Tsh {{ fee }}</div>
+    <div class="total">Total: Tsh {{ total }}</div>
+
+    <form action="/complete" method="post">
+        <input type="hidden" name="number" value="{{ number }}">
+        <input type="hidden" name="amount" value="{{ amount }}">
+        <input type="hidden" name="fee" value="{{ fee }}">
+        <button type="submit">Confirm & Pay</button>
+    </form>
 </div>
 </body>
 </html>
 """
 
-@app.route("/", methods=["GET"])
+SUCCESS_HTML = """
+<!doctype html>
+<html>
+<head>
+<title>Success</title>
+""" + BASE_STYLE + """
+</head>
+<body>
+<div class="card">
+    <div class="success">Payment Successful</div>
+    <div class="info">Sent to {{ number }}</div>
+    <div class="info">Amount: Tsh {{ amount }}</div>
+    <div class="info">Fee: Tsh {{ fee }}</div>
+    <div class="total">Total: Tsh {{ total }}</div>
+</div>
+</body>
+</html>
+"""
+
+@app.route("/")
 def home():
-    return render_template_string(home_template)
+    return render_template_string(HOME_HTML)
 
 @app.route("/confirm", methods=["POST"])
 def confirm():
-    number = request.form.get("number")
-    amount = float(request.form.get("amount"))
+    number = request.form["number"]
+    amount = float(request.form["amount"])
     detected = detect_number(number)
     name = detected["name"] if detected else "Unknown"
-    provider = detected["provider"] if detected else "Unknown"
     fee = round(amount * FEE_PERCENTAGE, 2)
     total = amount + fee
-    return render_template_string(confirm_template,
-                                  number=number,
-                                  name=name,
-                                  provider=provider,
-                                  amount=amount,
-                                  fee=fee,
-                                  total=total)
+    return render_template_string(CONFIRM_HTML,
+        number=number, name=name, amount=amount, fee=fee, total=total)
 
 @app.route("/complete", methods=["POST"])
 def complete():
-    number = request.form.get("number")
-    amount = float(request.form.get("amount"))
-    fee = float(request.form.get("fee"))
+    number = request.form["number"]
+    amount = float(request.form["amount"])
+    fee = float(request.form["fee"])
     total = amount + fee
-    # Real payment gateway integration comes later
-    return render_template_string(success_template,
-                                  number=number,
-                                  amount=amount,
-                                  fee=fee,
-                                  total=total)
+    return render_template_string(SUCCESS_HTML,
+        number=number, amount=amount, fee=fee, total=total)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
