@@ -14,43 +14,37 @@ STYLE = """
 <style>
 * { box-sizing: border-box; margin:0; padding:0; }
 
-html, body {
-    height: 100%;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    overflow-x: hidden;
-}
+html, body { height: 100%; font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
 
-/* BACKGROUND */
 body {
     display: flex;
     justify-content: center;
     align-items: center;
     background: #102f4c;
     position: relative;
-    background-image: repeating-linear-gradient(
-        45deg,
-        rgba(255,255,255,0.03),
-        rgba(255,255,255,0.03) 1px,
-        transparent 1px,
-        transparent 40px
-    );
 }
 
-/* WATERMARK TEXT */
+/* WATERMARK GRID */
 body::before {
     content: 'ShenskoPay';
     position: absolute;
-    top: -10%;
-    left: -5%;
-    font-size: 160px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    font-size: 100px;
     color: rgba(255,255,255,0.03);
-    transform: rotate(-25deg);
+    z-index: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-auto-rows: 150px;
+    justify-items: center;
+    align-items: center;
     pointer-events: none;
 }
 
-/* CARD */
 .card {
-    width: 94%;
+    width: 90%;
     max-width: 900px;
     background: rgba(255,255,255,0.98);
     border-radius: 24px;
@@ -62,94 +56,26 @@ body::before {
     opacity: 0;
 }
 
-/* FADE-IN */
-@keyframes fadeIn {
-    to { opacity: 1; }
-}
+@keyframes fadeIn { to { opacity: 1; } }
 
-/* BRAND LOGO */
-.brand {
-    text-align: center;
-    font-size: 60px;
-    font-weight: 900;
-    color: #ff6f00;
-    margin-bottom: 16px;
-}
+.brand { text-align: center; font-size: 60px; font-weight: 900; color: #ff6f00; margin-bottom: 16px; }
+.tagline { text-align: center; font-size: 22px; color: #555; margin-bottom: 40px; }
 
-.tagline {
-    text-align: center;
-    font-size: 22px;
-    color: #555;
-    margin-bottom: 40px;
-}
+label { font-weight: 700; font-size: 20px; color: #222; display: block; margin-bottom: 12px; }
+input { width: 100%; padding: 20px; margin-bottom: 28px; border-radius: 16px; border: 1.5px solid #ccc; font-size: 20px; }
+input:focus { outline: none; border-color: #ff6f00; }
 
-/* FORM */
-label {
-    font-weight: 700;
-    font-size: 20px;
-    color: #222;
-    display: block;
-    margin-bottom: 12px;
-}
+button { width: 100%; padding: 20px; border-radius: 18px; border: none; background: linear-gradient(135deg, #ff6f00, #ffb300); color: #fff; font-size: 24px; font-weight: 900; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.3s ease; }
+button:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,0.5); }
 
-input {
-    width: 100%;
-    padding: 20px;
-    margin-bottom: 28px;
-    border-radius: 16px;
-    border: 1.5px solid #ccc;
-    font-size: 20px;
-}
+.info { font-size: 22px; margin: 14px 0; }
+.total { margin-top: 18px; font-size: 28px; font-weight: 900; }
+.success { text-align: center; font-size: 36px; font-weight: 900; color: #2e7d32; }
 
-input:focus {
-    outline: none;
-    border-color: #ff6f00;
-}
-
-/* BUTTON */
-button {
-    width: 100%;
-    padding: 20px;
-    border-radius: 18px;
-    border: none;
-    background: linear-gradient(135deg, #ff6f00, #ffb300);
-    color: #fff;
-    font-size: 24px;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-}
-
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.5);
-}
-
-/* INFO */
-.info {
-    font-size: 22px;
-    margin: 14px 0;
-}
-
-.total {
-    margin-top: 18px;
-    font-size: 28px;
-    font-weight: 900;
-}
-
-/* SUCCESS */
-.success {
-    text-align: center;
-    font-size: 36px;
-    font-weight: 900;
-    color: #2e7d32;
-}
-
-/* MOBILE */
 @media (max-width: 600px) {
     .card { padding: 32px; }
     .brand { font-size: 44px; }
-    body::before { font-size: 80px; top: 15%; left: -5%; }
+    body::before { font-size: 60px; }
 }
 </style>
 """
@@ -162,14 +88,11 @@ HOME = """
 <div class="card">
     <div class="brand">💰 ShenskoPay</div>
     <div class="tagline">Fast • Secure • Trusted Payments</div>
-
     <form action="/confirm" method="post">
         <label>Recipient Number</label>
         <input name="number" placeholder="07XXXXXXXX" required>
-
         <label>Amount (TZS)</label>
         <input type="number" name="amount" placeholder="Enter amount" required>
-
         <button type="submit">Continue</button>
     </form>
 </div>
@@ -184,13 +107,11 @@ CONFIRM = """
 <body>
 <div class="card">
     <div class="brand">Confirm Payment</div>
-
     <div class="info">Recipient: <b>{{ name }}</b></div>
     <div class="info">Number: {{ number }}</div>
     <div class="info">Amount: Tsh {{ amount }}</div>
     <div class="info">Fee: Tsh {{ fee }}</div>
     <div class="total">Total: Tsh {{ total }}</div>
-
     <form action="/complete" method="post">
         <input type="hidden" name="number" value="{{ number }}">
         <input type="hidden" name="amount" value="{{ amount }}">
@@ -219,9 +140,7 @@ SUCCESS = """
 """
 
 @app.route("/")
-def home():
-    return render_template_string(HOME)
-
+def home(): return render_template_string(HOME)
 @app.route("/confirm", methods=["POST"])
 def confirm():
     number = request.form["number"]
