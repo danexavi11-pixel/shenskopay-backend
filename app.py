@@ -2,7 +2,6 @@ from flask import Flask, request, render_template_string
 import re
 
 app = Flask(__name__)
-
 FEE_PERCENTAGE = 0.01
 
 def detect_number(value: str):
@@ -19,33 +18,52 @@ body {
     margin: 0;
     min-height: 100vh;
     font-family: 'Segoe UI', Roboto, sans-serif;
-    background:
-        radial-gradient(circle at top, #ff9800 0%, transparent 60%),
-        linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background: #0e1a24;
+    position: relative;
+    overflow-x: hidden;
+    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+}
+
+/* WATERMARK BACKGROUND */
+body::before {
+    content: "SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY • SHENSKOPAY";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: rgba(255, 255, 255, 0.04);
+    transform: rotate(-20deg);
+    white-space: nowrap;
+    z-index: 0;
 }
 
 /* MAIN CARD */
 .card {
+    position: relative;
+    z-index: 1;
     width: 100%;
-    max-width: 720px;
+    max-width: 760px;
     background: linear-gradient(
         180deg,
-        rgba(255,255,255,0.95),
-        rgba(245,245,245,0.92)
+        rgba(255,255,255,0.96),
+        rgba(245,245,245,0.93)
     );
     border-radius: 22px;
-    padding: 36px;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.45);
+    padding: 38px;
+    box-shadow: 0 35px 70px rgba(0,0,0,0.55);
 }
 
 /* BRAND */
 .brand {
     text-align: center;
-    font-size: 34px;
+    font-size: 36px;
     font-weight: 900;
     color: #ff6f00;
     letter-spacing: 1px;
@@ -55,7 +73,7 @@ body {
     text-align: center;
     font-size: 15px;
     color: #555;
-    margin-bottom: 30px;
+    margin-bottom: 34px;
 }
 
 /* FORM */
@@ -67,9 +85,9 @@ label {
 
 input {
     width: 100%;
-    padding: 16px;
+    padding: 17px;
     margin-top: 8px;
-    margin-bottom: 22px;
+    margin-bottom: 24px;
     border-radius: 14px;
     border: 1px solid #ccc;
     font-size: 17px;
@@ -100,17 +118,17 @@ button:hover {
 
 .total {
     margin-top: 14px;
-    font-size: 20px;
+    font-size: 21px;
     font-weight: 900;
 }
 
 /* SUCCESS */
 .success {
     text-align: center;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 900;
     color: #2e7d32;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 /* MOBILE */
@@ -136,7 +154,7 @@ HOME_HTML = """
 <body>
 <div class="card">
     <div class="brand">ShenskoPay</div>
-    <div class="tagline">Pay Anyone. Anywhere. Instantly.</div>
+    <div class="tagline">Fast • Secure • Trusted Payments</div>
 
     <form action="/confirm" method="post">
         <label>Recipient Number</label>
