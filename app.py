@@ -26,17 +26,32 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #0e1a24;
+    background: linear-gradient(135deg, #0e1a24, #102f4c);
+    position: relative;
+}
+
+/* WATERMARK TEXT */
+body::before {
+    content: 'ShenskoPay';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    font-size: 120px;
+    color: rgba(255,255,255,0.05);
+    transform: rotate(-25deg);
+    pointer-events: none;
 }
 
 /* CARD */
 .card {
     width: 94%;
     max-width: 900px;
-    background: #ffffff;
+    background: rgba(255,255,255,0.95);
     border-radius: 24px;
     padding: 48px;
     box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+    position: relative;
+    z-index: 1;
 }
 
 /* BRAND */
@@ -121,6 +136,7 @@ button:hover { opacity: 0.96; }
     .brand {
         font-size: 32px;
     }
+    body::before { font-size: 60px; top: 25%; left: 0; }
 }
 </style>
 """
