@@ -1,31 +1,56 @@
-import os
+import base64
+import json
 import requests
-from requests.auth import HTTPBasicAuth
+from datetime import datetime, timezone
 
-# Live Pesapal API URL
-PESAPAL_API_URL = "https://www.pesapal.com/API/Payments/SubmitPayment"
+PESAPAL_BASE_URL = "https://pay.pesapal.com/v3"  # LIVE
+# For sandbox later we will switch URL
 
-# Your keys from Render environment variables
-CONSUMER_KEY = os.environ.get("PESAPAL_CONSUMER_KEY")
-CONSUMER_SECRET = os.environ.get("PESAPAL_CONSUMER_SECRET")
+class PesapalClient:
+    def __init__(self, consumer_key, consumer_secret):
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
+        self.token = None
 
-def create_payment(amount, description, reference, phone):
-    """
-    Create a real Pesapal payment request.
-    """
-    payload = {
-        "amount": amount,
-        "description": description,
-        "type": "MERCHANT",
-        "reference": reference,
-        "email": f"{phone}@example.com"  # Pesapal requires an email
-    }
+    def get_access_token(self):
+        url = f"{PESAPAL_BASE_URL}/api/Auth/RequestToken"
+        credentials = f"{self.consumer_key}:{self.consumer_secret}"
+        encoded = base64.b64encode(credentials.encode()).decode()
 
-    response = requests.post(PESAPAL_API_URL,
-                             auth=HTTPBasicAuth(CONSUMER_KEY, CONSUMER_SECRET),
-                             json=payload)
+        headers = {
+            "Authorization": f"Basic {encoded}",
+            "Content-Type": "application/json"
+        }
 
-    if response.status_code == 200:
+        response = requests.post(url, headers=headers)
+        data = response.json()
+
+        self.token = data.get("token")
+        return self.token
+
+    def submit_order(self, amount, phone, description="ShenskoPay Payment"):
+        if not self.token:
+            self.get_access_token()
+
+        url = f"{PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest"
+
+        payload = {
+            "id": f"SHENSKO-{int(datetime.now(tz=timezone.utc).timestamp())}",
+            "currency": "TZS",
+            "amount": amount,
+            "description": description,
+            "callback_url": "https://shenskopay-backend.onrender.com/complete",
+            "notification_id": "",
+            "billing_address": {
+                "phone_number": phone,
+                "country_code": "TZ"
+            }
+        }
+
+        headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(url, headers=headers, json=payload)
         return response.json()
-    else:
-        return {"error": response.text}
