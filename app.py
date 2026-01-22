@@ -12,42 +12,38 @@ def detect_number(value: str):
 
 STYLE = """
 <style>
-* { box-sizing: border-box; }
+* { box-sizing: border-box; margin:0; padding:0; }
 
 html, body {
-    margin: 0;
     height: 100%;
     font-family: 'Segoe UI', Roboto, sans-serif;
-    font-size: 18px;
     overflow-x: hidden;
 }
 
 /* BACKGROUND */
 body {
     display: flex;
-    align-items: center;
     justify-content: center;
-    background: linear-gradient(-45deg, #0e1a24, #102f4c, #1a3a60, #0e1a24);
-    background-size: 400% 400%;
-    animation: gradientMove 15s ease infinite;
+    align-items: center;
+    background: #102f4c;
     position: relative;
-}
-
-/* GRADIENT ANIMATION */
-@keyframes gradientMove {
-    0% {background-position:0% 50%;}
-    50% {background-position:100% 50%;}
-    100% {background-position:0% 50%;}
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.03),
+        rgba(255,255,255,0.03) 1px,
+        transparent 1px,
+        transparent 40px
+    );
 }
 
 /* WATERMARK TEXT */
 body::before {
     content: 'ShenskoPay';
     position: absolute;
-    top: 20%;
-    left: 10%;
-    font-size: 120px;
-    color: rgba(255,255,255,0.05);
+    top: -10%;
+    left: -5%;
+    font-size: 160px;
+    color: rgba(255,255,255,0.03);
     transform: rotate(-25deg);
     pointer-events: none;
 }
@@ -56,10 +52,10 @@ body::before {
 .card {
     width: 94%;
     max-width: 900px;
-    background: rgba(255,255,255,0.95);
+    background: rgba(255,255,255,0.98);
     border-radius: 24px;
     padding: 48px;
-    box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.6);
     position: relative;
     z-index: 1;
     animation: fadeIn 1s ease forwards;
@@ -74,15 +70,15 @@ body::before {
 /* BRAND LOGO */
 .brand {
     text-align: center;
-    font-size: 48px;
+    font-size: 60px;
     font-weight: 900;
     color: #ff6f00;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .tagline {
     text-align: center;
-    font-size: 20px;
+    font-size: 22px;
     color: #555;
     margin-bottom: 40px;
 }
@@ -90,10 +86,10 @@ body::before {
 /* FORM */
 label {
     font-weight: 700;
-    font-size: 18px;
+    font-size: 20px;
     color: #222;
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 input {
@@ -118,46 +114,42 @@ button {
     border: none;
     background: linear-gradient(135deg, #ff6f00, #ffb300);
     color: #fff;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 900;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    box-shadow: 0 10px 24px rgba(0,0,0,0.5);
 }
 
 /* INFO */
 .info {
-    font-size: 20px;
+    font-size: 22px;
     margin: 14px 0;
 }
 
 .total {
     margin-top: 18px;
-    font-size: 26px;
+    font-size: 28px;
     font-weight: 900;
 }
 
 /* SUCCESS */
 .success {
     text-align: center;
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 900;
     color: #2e7d32;
 }
 
 /* MOBILE */
 @media (max-width: 600px) {
-    .card {
-        padding: 32px;
-    }
-    .brand {
-        font-size: 36px;
-    }
-    body::before { font-size: 60px; top: 25%; left: 0; }
+    .card { padding: 32px; }
+    .brand { font-size: 44px; }
+    body::before { font-size: 80px; top: 15%; left: -5%; }
 }
 </style>
 """
