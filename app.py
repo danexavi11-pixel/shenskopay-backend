@@ -1,56 +1,39 @@
-from flask import Flask, request, render_template_string, redirect
-from detector import detect_number
+from flask import Flask, request, redirect
 from pesapal import create_payment
-import uuid
 
 app = Flask(__name__)
-FEE_PERCENTAGE = 0.01  # 1% fee per transaction
-
-HTML_TEMPLATE = """ 
-... [same premium card + background HTML as before] ...
-"""
 
 @app.route("/", methods=["GET"])
-def home(): return render_template_string(HTML_TEMPLATE)
+def home():
+    return """
+    <h2>ShenskoPay</h2>
+    <form action="/pay" method="post">
+        <input name="number" placeholder="Receiver number" required><br><br>
+        <input name="amount" placeholder="Amount" type="number" required><br><br>
+        <button type="submit">Continue</button>
+    </form>
+    """
 
-@app.route("/confirm", methods=["POST"])
-def confirm():
+@app.route("/pay", methods=["POST"])
+def pay():
     number = request.form["number"]
-    amount = float(request.form["amount"])
-    detected = detect_number(number)
-    fee = round(amount*FEE_PERCENTAGE,2)
-    total = amount+fee
-    return render_template_string(HTML_TEMPLATE,
-                                  number=number,
-                                  name=detected["name"] if detected else "Unknown",
-                                  provider=detected["provider"] if detected else "Unknown",
-                                  amount=amount,
-                                  fee=fee,
-                                  total=total)
+    amount = request.form["amount"]
 
-@app.route("/complete", methods=["POST"])
-def complete():
-    number = request.form["number"]
-    amount = float(request.form["amount"])
-    fee = float(request.form["fee"])
-    total = amount+fee
+    callback_url = "https://shenskopay-backend.onrender.com/callback"
 
-    # Generate unique reference
-    reference = str(uuid.uuid4())
+    payment = create_payment(
+        amount=float(amount),
+        currency="TZS",
+        description=f"Send money to {number}",
+        callback_url=callback_url
+    )
 
-    # Description
-    description = f"Payment to {number}"
+    return redirect(payment["redirect_url"])
 
-    # Callback URL (Render public URL)
-    callback_url = "https://your-render-url.onrender.com/callback"
 
-    try:
-        # Create real Pesapal payment
-        payment_response = create_payment(reference, total, description, callback_url)
-        payment_url = payment_response.get("payment_url")  # redirect user to Pesapal
-        return redirect(payment_url)
-    except Exception as e:
-        return f"Payment error: {e}"
+@app.route("/callback", methods=["GET"])
+def callback():
+    return "<h3>Payment received. Verification coming next.</h3>"
 
-if __name__=="__main__":
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

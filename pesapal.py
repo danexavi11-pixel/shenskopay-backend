@@ -1,32 +1,53 @@
-import hashlib, hmac, base64, time, requests
-from urllib.parse import urlencode
+import requests
+import base64
+import uuid
+import json
 
-# Pesapal credentials from environment variables
-import os
-PESAPAL_CONSUMER_KEY = os.getenv("PESAPAL_KEY")
-PESAPAL_CONSUMER_SECRET = os.getenv("PESAPAL_SECRET")
-PESAPAL_BASE_URL = "https://demo.pesapal.com/api/v1/"
+PESAPAL_CONSUMER_KEY = "PUT_YOUR_KEY_HERE"
+PESAPAL_CONSUMER_SECRET = "PUT_YOUR_SECRET_HERE"
 
-def generate_signature(params: dict):
-    """Generate OAuth-like signature for Pesapal"""
-    sorted_items = sorted(params.items())
-    encoded = urlencode(sorted_items)
-    hashed = hmac.new(PESAPAL_CONSUMER_SECRET.encode(), encoded.encode(), hashlib.sha1)
-    return base64.b64encode(hashed.digest()).decode()
+PESAPAL_BASE_URL = "https://pay.pesapal.com/v3"
 
-def create_payment(reference:str, amount:float, description:str, callback_url:str):
-    """Send payment request to Pesapal"""
-    params = {
-        "reference": reference,
+def get_access_token():
+    auth_string = f"{PESAPAL_CONSUMER_KEY}:{PESAPAL_CONSUMER_SECRET}"
+    encoded = base64.b64encode(auth_string.encode()).decode()
+
+    headers = {
+        "Authorization": f"Basic {encoded}",
+        "Content-Type": "application/json"
+    }
+
+    res = requests.post(
+        f"{PESAPAL_BASE_URL}/api/Auth/RequestToken",
+        headers=headers
+    )
+
+    return res.json()["token"]
+
+
+def create_payment(amount, currency, description, callback_url):
+    token = get_access_token()
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+
+    order_id = str(uuid.uuid4())
+
+    payload = {
+        "id": order_id,
+        "currency": currency,
         "amount": amount,
         "description": description,
         "callback_url": callback_url,
-        "timestamp": int(time.time())
+        "notification_id": None
     }
-    signature = generate_signature(params)
-    headers = {"Authorization": f"Pesapal {PESAPAL_CONSUMER_KEY}:{signature}"}
-    resp = requests.post(f"{PESAPAL_BASE_URL}SendMoney", json=params, headers=headers)
-    if resp.status_code==200:
-        return resp.json()  # contains payment URL / status
-    else:
-        raise Exception(f"Pesapal Error: {resp.status_code} {resp.text}")
+
+    res = requests.post(
+        f"{PESAPAL_BASE_URL}/api/Transactions/SubmitOrderRequest",
+        headers=headers,
+        data=json.dumps(payload)
+    )
+
+    return res.json()
