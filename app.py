@@ -19,53 +19,67 @@ HTML_TEMPLATE = """
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:'Segoe UI',Roboto,sans-serif;overflow-x:hidden;}
 body{
-  display:flex;justify-content:center;align-items:center;background:#0b1d38;position:relative;
-  animation: fadeBG 20s infinite linear;
+  display:flex;justify-content:center;align-items:center;
+  background:#0b1d38;position:relative;
+  animation:bgAnim 30s infinite linear;
 }
-@keyframes fadeBG{
+@keyframes bgAnim{
   0%{background-position:0 0;}
   100%{background-position:100% 100%;}
 }
-
-/* PREMIUM WATERMARK BACKGROUND */
+/* PREMIUM ANIMATED WATERMARK */
 body::before{
   content:'';
   position:absolute;top:0;left:0;width:100%;height:100%;
   background: url('data:image/svg+xml;utf8,
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="100">
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="120">
   <defs>
     <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:%23ff6f00;stop-opacity:0.06"/>
-      <stop offset="100%" style="stop-color:%23ffb300;stop-opacity:0.06"/>
+      <stop offset="0%" style="stop-color:%23ff6f00;stop-opacity:0.05"/>
+      <stop offset="100%" style="stop-color:%23ffb300;stop-opacity:0.05"/>
     </linearGradient>
   </defs>
-  <text x="0" y="60" font-family="Verdana" font-size="60" fill="url(%23grad)" transform="rotate(-20 0 50)">ShenskoPay</text>
+  <text x="0" y="70" font-family="Verdana" font-size="70" fill="url(%23grad)" transform="rotate(-25 0 50)">ShenskoPay</text>
 </svg>') repeat;
   z-index:0;pointer-events:none;
+  animation:moveWatermark 40s linear infinite;
+}
+@keyframes moveWatermark{
+  0%{background-position:0 0;}
+  100%{background-position:800px 600px;}
 }
 
 .card{
-  width:95%;max-width:900px;background:rgba(255,255,255,0.95);
+  width:90%;max-width:900px;background:rgba(255,255,255,0.97);
   border-radius:32px;padding:60px;box-shadow:0 25px 70px rgba(0,0,0,0.6);
   position:relative;z-index:1;text-align:center;
+  transition:0.3s;
 }
-.brand{font-size:72px;font-weight:900;color:#ff6f00;margin-bottom:12px;}
+.card:hover{transform:scale(1.02);}
+
+.brand{font-size:72px;font-weight:900;color:#ff6f00;margin-bottom:12px;text-shadow:2px 2px 5px rgba(0,0,0,0.3);}
 .tagline{font-size:24px;color:#444;margin-bottom:40px;}
+
 label{display:block;font-weight:700;font-size:20px;color:#222;margin-bottom:10px;text-align:left;}
 input{width:100%;padding:20px;margin-bottom:24px;border-radius:16px;border:1px solid #ccc;font-size:22px;transition:0.3s;}
 input:focus{outline:none;border-color:#ff6f00;transform:scale(1.02);}
+
 button{
   width:100%;padding:20px;font-size:26px;font-weight:900;border:none;border-radius:16px;
   background:linear-gradient(135deg,#ff6f00,#ffb300);color:white;cursor:pointer;transition:0.3s;
 }
 button:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 15px 35px rgba(0,0,0,0.5);}
+
 .info{font-size:22px;margin:14px 0;}
 .total{margin-top:18px;font-size:28px;font-weight:900;}
 .success{font-size:36px;font-weight:900;color:#2e7d32;margin-top:20px;}
+
 @media(max-width:600px){
   .card{padding:32px;}
   .brand{font-size:52px;}
   .tagline{font-size:20px;}
+  input{padding:16px;font-size:20px;}
+  button{padding:16px;font-size:22px;}
 }
 </style>
 </head>
@@ -80,6 +94,7 @@ button:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 15px 35px rgba(
 <input type="number" name="amount" placeholder="Enter amount" required>
 <button type="submit">Continue</button>
 </form>
+
 {% if number %}
 <div class="info">Number: {{ number }}</div>
 <div class="info">Name: {{ name }}</div>
@@ -94,6 +109,7 @@ button:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 15px 35px rgba(
 <button type="submit">Confirm Payment</button>
 </form>
 {% endif %}
+
 {% if success %}
 <div class="success">Payment Successful ✅</div>
 <div class="info">Number: {{ number }}</div>
@@ -101,6 +117,7 @@ button:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 15px 35px rgba(
 <div class="info">Fee Collected: Tsh {{ fee }}</div>
 <div class="info">Total Deducted: Tsh {{ total }}</div>
 {% endif %}
+
 </div>
 </body>
 </html>
